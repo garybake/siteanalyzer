@@ -4,6 +4,24 @@ App to determine what a web page is about by classifying the image
 
 Uses serverless aws architecture
 
+Architecture
+============
+![Architecture](/docs/SiteAnalyzer.png)
+
+Endpoints
+=========
+## Get list of all registered sites 
+curl https://gbimmageclassifier.<yourdomain>/url/list 
+
+## Get list of images for specific site
+curl https://gbimmageclassifier.<yourdomain>/image/list?pageid=7213c7e3.www.garybake.com
+
+## Request analysis of web page
+curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"url":"http://garybake.com"}' \
+  https://gbimmageclassifier.<yourdomain>/url/analyze
+
 AWS
 ===
 Cloudformation
@@ -20,19 +38,6 @@ Python
 Boto3
 BeautifulSoup
 Requests
-
-## Get list of all registered sites 
-curl https://gbimmageclassifier.<yourdomain>/url/list 
-
-## Get list of images for specific site
-curl https://gbimmageclassifier.<yourdomain>/image/list?pageid=7213c7e3.www.garybake.com
-
-## Request analysis of web page
-curl --header "Content-Type: application/json" \
-  --request POST \
-  --data '{"url":"http://garybake.com"}' \
-  https://gbimmageclassifier.<yourdomain>/url/analyze
-
 
 ENV
 ===
