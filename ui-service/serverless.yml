@@ -1,0 +1,68 @@
+
+service: ui-service
+frameworkVersion: ">=1.30.0"
+
+plugins:
+  - serverless-domain-manager
+
+custom:
+  region: ${env:AWS_DEFAULT_REGION, 'eu-west-1'}
+  accountid: ${env:AWS_ACCOUNT_ID}
+  domain: ${env:GBIMAGECLASSIFIER_DOMAIN}
+  classifiertable: ${env:GBIMAGECLASSIFIER_TABLE}
+  bucket: ${env:GBIMAGECLASSIFIER_BUCKET}
+  crawlerqueue: ${env:GBIMAGECLASSIFIER_CRAWLERQUEUE}
+  customDomain:
+    domainName: 'gbimmageclassifier.${self:custom.domain}'
+    basePath: ''
+    stage: dev
+    createRoute53Record: true
+
+provider:
+  name: aws
+  runtime: python3.8
+  region: ${env:AWS_DEFAULT_REGION, 'eu-west-1'}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:Scan
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:Query
+      Resource: 'arn:aws:dynamodb:${self:provider.region}:*:*'
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+      Resource: "arn:aws:sqs:*:*:${self:custom.crawlerqueue}"
+
+functions:
+  listImages:
+    handler: handler.list_images
+    environment:
+      GBIMAGECLASSIFIER_TABLE: ${self:custom.classifiertable}
+    events:
+      - http:
+          path: image/list
+          method: get
+          cors: true
+  listUrls:
+    handler: handler.list_urls
+    environment:
+      GBIMAGECLASSIFIER_TABLE: ${self:custom.classifiertable}
+    events:
+      - http:
+          path: url/list
+          method: get
+          cors: true
+  analyzeUrl:
+    handler: handler.analyze_url
+    environment:
+      GBIMAGECLASSIFIER_CRAWLERQUEUE: ${self:custom.crawlerqueue}
+      AWS_ACCOUNT_ID: ${self:custom.accountid}
+    events:
+      - http:
+          path: url/analyze
+          method: post
+          cors: true
+

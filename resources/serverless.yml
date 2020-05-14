@@ -1,0 +1,41 @@
+service: resources
+frameworkVersion: ">=1.30.0"
+custom:
+  crawlerqueue: CrawlerQueue
+  analysisqueue: AnalysisQueue
+  region: ${env:AWS_DEFAULT_REGION, 'eu-west-1'}
+  accountid: ${env:AWS_ACCOUNT_ID}
+  classifiertable: ${env:GBIMAGECLASSIFIER_TABLE}
+
+provider:
+  name: aws
+  runtime: python3.6
+  region: ${env:AWS_DEFAULT_REGION, 'eu-west-1'}
+  stage: dev
+
+resources:
+  Resources:
+    CrawlerQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "${self:custom.crawlerqueue}"
+    AnalysisQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "${self:custom.analysisqueue}"
+    WebPageDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        TableName: "${self:custom.classifiertable}"
+        AttributeDefinitions:
+          - AttributeName: "PageID"
+            AttributeType: "S"   
+        KeySchema:
+          - AttributeName: "PageID"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        
+
